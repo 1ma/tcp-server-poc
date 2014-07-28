@@ -18,7 +18,7 @@ public class MahServer {
         int cores = Runtime.getRuntime().availableProcessors();
 
         for (int i = 0; i < cores; i++) {
-            Thread t = new Thread(new LeWorker("Worker " + i, myServer));
+            Thread t = new Thread(new LeWorker(i, myServer));
             t.start();
         }
     }

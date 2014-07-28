@@ -8,31 +8,31 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class LeWorker implements Runnable {
-    Thread runner;
+    int id;
     ServerSocket server;
 
-    private String readNextString(InputStream is) {
-        Scanner s = new Scanner(is).useDelimiter(new String(new byte[]{0x00}));
-        return s.hasNext() ? s.next() : null;
+    public LeWorker(int id, ServerSocket server) {
+        this.id = id;
+        this.server = server;
     }
 
-    public LeWorker(String threadName, ServerSocket server) {
-        this.server = server;
-
-        this.runner = new Thread(this, threadName);
-        this.runner.start();
+    @Override
+    public void run() {
+        while (true) {
+            processARequest();
+        }
     }
 
     private void processARequest() {
         try {
-            // Accepta una conexio i crea l'objecte socket
+            // Accepta una conexio i crea lobjecte socket
             Socket socket = server.accept();
 
             // Llegeix linput
-            String input = readNextString(socket.getInputStream());
+            String input = readAString(socket.getInputStream());
 
-            String resposta = "Handled from worker " + runner.getName() + " - " + input;
-
+            // Prepara resposta i logala
+            String resposta = "Handled from worker " + id + " - " + input;
             System.out.println(resposta);
 
             // Contesta
@@ -46,10 +46,9 @@ public class LeWorker implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            processARequest();
-        }
+    private String readAString(InputStream is) {
+        // http://stackoverflow.com/a/5445161/1729742
+        Scanner s = new Scanner(is).useDelimiter(new String(new byte[]{0x00}));
+        return s.hasNext() ? s.next() : null;
     }
 }

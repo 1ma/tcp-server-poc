@@ -2,47 +2,39 @@ package jautenim;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class LeWorker implements Runnable {
-    int id;
-    ServerSocket server;
+    private Socket socket;
 
-    public LeWorker(int id, ServerSocket server) {
-        this.id = id;
-        this.server = server;
+    public LeWorker(Socket socket) {
+        this.socket = socket;
     }
 
     @Override
     public void run() {
-        while (true) {
-            processARequest();
-        }
-    }
-
-    private void processARequest() {
         try {
-            // Accepta una conexio i crea lobjecte socket
-            Socket socket = server.accept();
+            // Consegueix el nom del thread
+            String name;
+            synchronized (this) {
+                name = Thread.currentThread().getName();
+            }
 
-            // Llegeix linput
-            String input = readAString(socket.getInputStream());
+            // Llegeix linput del socket
+            String input = readAString(this.socket.getInputStream());
 
             // Prepara resposta i logala
-            String resposta = "Handled from worker " + id + " - " + input;
-            System.out.println(resposta);
+            String resposta = "Handled by worker " + name + " - " + input;
+            // System.out.println(resposta);
 
             // Contesta
-            OutputStream os = socket.getOutputStream();
-            os.write(resposta.getBytes());
+            this.socket.getOutputStream().write(resposta.getBytes());
 
             // Acaba la comunicacio
             socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Request handling fuckup", e);
         }
     }
 
